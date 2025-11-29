@@ -21,22 +21,31 @@ WS_URL = f"ws://{COMFY_HOST}:{COMFY_PORT}/ws"
 # --- ComfyUI Client Logic ---
 
 def upload_image(file_storage, image_type="input"):
-    """Uploads an image file to ComfyUI [1][2]."""
-    filename = secure_filename(file_storage.filename)
+    """
+    Uploads an image file to ComfyUI [1][2].
+    Adds a unique prefix to the filename to prevent overwriting when multiple
+    files share the same name (common with proxies/APIs).
+    """
+    original_name = secure_filename(file_storage.filename)
+    if not original_name:
+        original_name = "image.png"
+        
+    # Generate a unique filename using UUID
+    unique_prefix = str(uuid.uuid4())[:8]
+    filename = f"{unique_prefix}_{original_name}"
+    
     # ComfyUI expects the file field to be named 'image'
     files = {"image": (filename, file_storage.read(), file_storage.content_type)}
     data = {"type": image_type, "overwrite": "true"}
     
     try:
-        # Source [1] defines the /upload/image endpoint
         response = requests.post(f"{COMFY_URL}/upload/image", files=files, data=data)
         response.raise_for_status()
-        # ComfyUI returns the name and subfolder
-        result = response.json()
         
-        # Reset file pointer for any subsequent use if necessary (though usually consumed)
+        # Reset file pointer
         file_storage.seek(0)
         
+        result = response.json()
         return result.get("name", filename)
     except Exception as e:
         print(f"Error uploading image: {e}")
