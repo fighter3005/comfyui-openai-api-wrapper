@@ -1,0 +1,11 @@
+services:
+  comfy-api-wrapper:
+    build: .
+    container_name: comfy-api-wrapper
+    ports:
+      - "5000:5000"
+    environment:
+      # If ComfyUI is running on the host machine outside docker:
+      - COMFYUI_HOST=192.168.178.83
+      # If ComfyUI is running in another docker container, use its service name
+      - COMFYUI_PORT=57637
