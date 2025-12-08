@@ -1,6 +1,7 @@
 import copy
 
 # Workflow Definitions
+
 FLUX_KONTEXT_DEV = {
   "6": { "inputs": { "text": "", "clip": ["194", 0] }, "class_type": "CLIPTextEncode" },
   "8": { "inputs": { "samples": ["31", 0], "vae": ["39", 0] }, "class_type": "VAEDecode" },
@@ -11,7 +12,7 @@ FLUX_KONTEXT_DEV = {
   "124": { "inputs": { "pixels": ["42", 0], "vae": ["39", 0] }, "class_type": "VAEEncode" },
   "135": { "inputs": { "conditioning": ["6", 0] }, "class_type": "ConditioningZeroOut" },
   "136": { "inputs": { "filename_prefix": "ComfyUI", "images": ["8", 0] }, "class_type": "SaveImage" },
-  "142": { "inputs": { "image": "", "refresh": "refresh" }, "class_type": "LoadImage" }, # Changed class_type to LoadImage for API compatibility
+  "142": { "inputs": { "image": "", "refresh": "refresh" }, "class_type": "LoadImage" },
   "146": { "inputs": { "direction": "right", "match_image_size": True, "spacing_width": 0, "spacing_color": "white", "image1": ["142", 0] }, "class_type": "ImageStitch" },
   "173": { "inputs": { "images": ["42", 0] }, "class_type": "PreviewImage" },
   "177": { "inputs": { "conditioning": ["6", 0], "latent": ["124", 0] }, "class_type": "ReferenceLatent" },
@@ -49,19 +50,20 @@ QWEN_IMAGE_EDIT = {
   "112": { "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }, "class_type": "EmptySD3LatentImage" }
 }
 
-FLUX_KREA_DEV = {
-  "8": { "inputs": { "samples": ["31", 0], "vae": ["39", 0] }, "class_type": "VAEDecode" },
-  "9": { "inputs": { "filename_prefix": "flux_krea/flux_krea", "images": ["8", 0] }, "class_type": "SaveImage" },
-  "27": { "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }, "class_type": "EmptySD3LatentImage" },
-  "31": { "inputs": { "seed": 0, "steps": 20, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1, "model": ["53", 0], "positive": ["45", 0], "negative": ["42", 0], "latent_image": ["27", 0] }, "class_type": "KSampler" },
-  "39": { "inputs": { "vae_name": "ae.safetensors" }, "class_type": "VAELoader" },
-  "42": { "inputs": { "conditioning": ["45", 0] }, "class_type": "ConditioningZeroOut" },
-  "45": { "inputs": { "text": "", "clip": ["52", 0] }, "class_type": "CLIPTextEncode" },
-  "52": { "inputs": { "clip_name1": "clip_l.safetensors", "clip_name2": "t5-v1_1-xxl-encoder-Q4_K_M.gguf", "type": "flux" }, "class_type": "DualCLIPLoaderGGUF" },
-  "53": { "inputs": { "unet_name": "flux1-krea-dev-Q4_K_M.gguf" }, "class_type": "UnetLoaderGGUF" }
+# New Z-Image Workflow
+Z_IMAGE_TURBO_GEN = {
+  "3": { "inputs": { "seed": 0, "steps": 10, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1, "model": ["30", 0], "positive": ["6", 0], "negative": ["7", 0], "latent_image": ["13", 0] }, "class_type": "KSampler" },
+  "6": { "inputs": { "text": "", "clip": ["29", 0] }, "class_type": "CLIPTextEncode" },
+  "7": { "inputs": { "text": "blurry ugly bad", "clip": ["29", 0] }, "class_type": "CLIPTextEncode" },
+  "8": { "inputs": { "samples": ["3", 0], "vae": ["17", 0] }, "class_type": "VAEDecode" },
+  "9": { "inputs": { "filename_prefix": "ComfyUI", "images": ["8", 0] }, "class_type": "SaveImage" },
+  "13": { "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }, "class_type": "EmptySD3LatentImage" },
+  "17": { "inputs": { "vae_name": "ae.safetensors" }, "class_type": "VAELoader" },
+  "29": { "inputs": { "clip_name": "Qwen_3_4b-Q8_0.gguf", "type": "lumina2" }, "class_type": "CLIPLoaderGGUF" },
+  "30": { "inputs": { "unet_name": "Z_Image_Q6_K.gguf" }, "class_type": "UnetLoaderGGUF" }
 }
 
-# New Flux 2 Workflows
+# Flux 2 Workflows
 FLUX_2_GEN = {
   "6": { "inputs": { "text": "", "clip": ["38", 0] }, "class_type": "CLIPTextEncode" },
   "8": { "inputs": { "samples": ["13", 0], "vae": ["10", 0] }, "class_type": "VAEDecode" },
@@ -122,6 +124,34 @@ FLUX_2_EDIT_2IMG = {
   "67": { "inputs": { "unet_name": "flux2_dev_Q4_K_M.gguf" }, "class_type": "UnetLoaderGGUF" }
 }
 
+FLUX_2_EDIT_3IMG = {
+  "6": { "inputs": { "text": "", "clip": ["38", 0] }, "class_type": "CLIPTextEncode" },
+  "8": { "inputs": { "samples": ["13", 0], "vae": ["10", 0] }, "class_type": "VAEDecode" },
+  "9": { "inputs": { "filename_prefix": "Flux2", "images": ["8", 0] }, "class_type": "SaveImage" },
+  "10": { "inputs": { "vae_name": "flux2-vae.safetensors" }, "class_type": "VAELoader" },
+  "13": { "inputs": { "noise": ["25", 0], "guider": ["22", 0], "sampler": ["16", 0], "sigmas": ["48", 0], "latent_image": ["47", 0] }, "class_type": "SamplerCustomAdvanced" },
+  "16": { "inputs": { "sampler_name": "euler" }, "class_type": "KSamplerSelect" },
+  "22": { "inputs": { "model": ["67", 0], "conditioning": ["71", 0] }, "class_type": "BasicGuider" },
+  "25": { "inputs": { "noise_seed": 0 }, "class_type": "RandomNoise" },
+  "26": { "inputs": { "guidance": 4, "conditioning": ["6", 0] }, "class_type": "FluxGuidance" },
+  "38": { "inputs": { "clip_name": "mistral_3_small_flux2_fp8.safetensors", "type": "flux2", "device": "default" }, "class_type": "CLIPLoader" },
+  "39": { "inputs": { "conditioning": ["43", 0], "latent": ["40", 0] }, "class_type": "ReferenceLatent" },
+  "40": { "inputs": { "pixels": ["41", 0], "vae": ["10", 0] }, "class_type": "VAEEncode" },
+  "41": { "inputs": { "upscale_method": "lanczos", "megapixels": 1, "image": ["42", 0] }, "class_type": "ImageScaleToTotalPixels" },
+  "42": { "inputs": { "image": "" }, "class_type": "LoadImage" },
+  "43": { "inputs": { "conditioning": ["26", 0], "latent": ["44", 0] }, "class_type": "ReferenceLatent" },
+  "44": { "inputs": { "pixels": ["45", 0], "vae": ["10", 0] }, "class_type": "VAEEncode" },
+  "45": { "inputs": { "upscale_method": "lanczos", "megapixels": 2, "image": ["46", 0] }, "class_type": "ImageScaleToTotalPixels" },
+  "46": { "inputs": { "image": "" }, "class_type": "LoadImage" },
+  "47": { "inputs": { "width": 1088, "height": 1920, "batch_size": 1 }, "class_type": "EmptyFlux2LatentImage" },
+  "48": { "inputs": { "steps": 20, "width": 1088, "height": 1920 }, "class_type": "Flux2Scheduler" },
+  "67": { "inputs": { "unet_name": "flux2_dev_Q4_K_M.gguf" }, "class_type": "UnetLoaderGGUF" },
+  "68": { "inputs": { "image": "" }, "class_type": "LoadImage" },
+  "69": { "inputs": { "upscale_method": "lanczos", "megapixels": 2, "image": ["68", 0] }, "class_type": "ImageScaleToTotalPixels" },
+  "70": { "inputs": { "pixels": ["69", 0], "vae": ["10", 0] }, "class_type": "VAEEncode" },
+  "71": { "inputs": { "conditioning": ["39", 0], "latent": ["70", 0] }, "class_type": "ReferenceLatent" }
+}
+
 def get_workflow(name, mode="gen", img_count=0):
     if name == "flux-kontext-dev":
         return copy.deepcopy(FLUX_KONTEXT_DEV)
@@ -129,6 +159,8 @@ def get_workflow(name, mode="gen", img_count=0):
         return copy.deepcopy(QWEN_IMAGE_EDIT)
     elif name == "flux-krea-dev":
         return copy.deepcopy(FLUX_KREA_DEV)
+    elif name == "z-image-turbo":
+        return copy.deepcopy(Z_IMAGE_TURBO_GEN)
     elif name == "flux-2-dev":
         if mode == "gen":
             return copy.deepcopy(FLUX_2_GEN)
@@ -137,4 +169,6 @@ def get_workflow(name, mode="gen", img_count=0):
                 return copy.deepcopy(FLUX_2_EDIT_1IMG)
             elif img_count == 2:
                 return copy.deepcopy(FLUX_2_EDIT_2IMG)
+            elif img_count == 3:
+                return copy.deepcopy(FLUX_2_EDIT_3IMG)
     return None

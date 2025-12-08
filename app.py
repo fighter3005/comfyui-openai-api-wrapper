@@ -19,7 +19,6 @@ COMFY_URL = f"http://{COMFY_HOST}:{COMFY_PORT}"
 WS_URL = f"ws://{COMFY_HOST}:{COMFY_PORT}/ws"
 
 # --- ComfyUI Client Logic ---
-
 def upload_image(file_storage, image_type="input"):
     """
     Uploads an image file to ComfyUI [1][2].
@@ -29,15 +28,15 @@ def upload_image(file_storage, image_type="input"):
     original_name = secure_filename(file_storage.filename)
     if not original_name:
         original_name = "image.png"
-        
+
     # Generate a unique filename using UUID
     unique_prefix = str(uuid.uuid4())[:8]
     filename = f"{unique_prefix}_{original_name}"
-    
+
     # ComfyUI expects the file field to be named 'image'
     files = {"image": (filename, file_storage.read(), file_storage.content_type)}
     data = {"type": image_type, "overwrite": "true"}
-    
+
     try:
         response = requests.post(f"{COMFY_URL}/upload/image", files=files, data=data)
         response.raise_for_status()
@@ -96,6 +95,7 @@ def execute_workflow(workflow):
                 data = message['data']
                 if data['node'] is None and data['prompt_id'] == prompt_id:
                     break # Execution is done
+    
     ws.close()
 
     # Fetch results from history
@@ -103,7 +103,6 @@ def execute_workflow(workflow):
     outputs = history.get('outputs', {})
     
     generated_images = []
-    
     for node_id in outputs:
         node_output = outputs[node_id]
         if 'images' in node_output:
@@ -111,11 +110,10 @@ def execute_workflow(workflow):
                 raw_data = get_image_raw(image['filename'], image['subfolder'], image['type'])
                 b64_img = base64.b64encode(raw_data).decode('utf-8')
                 generated_images.append({"b64_json": b64_img})
-                
+    
     return generated_images
 
 # --- Helpers ---
-
 def parse_size(size_str):
     """Parses OpenAI 'size' param (e.g., '1024x1024') into (width, height)."""
     try:
@@ -133,7 +131,7 @@ def normalize_model_id(model_id):
     """
     if not model_id:
         return "flux-kontext-dev" # Default
-        
+    
     if model_id.startswith("openai/"):
         return model_id[7:]
     if model_id.startswith("comfy-"):
@@ -152,7 +150,8 @@ def list_models():
             {"id": "flux-kontext-dev", "object": "model", "created": int(time.time()), "owned_by": "comfyui"},
             {"id": "qwen-image-edit-2509", "object": "model", "created": int(time.time()), "owned_by": "comfyui"},
             {"id": "flux-krea-dev", "object": "model", "created": int(time.time()), "owned_by": "comfyui"},
-            {"id": "flux-2-dev", "object": "model", "created": int(time.time()), "owned_by": "comfyui"}
+            {"id": "flux-2-dev", "object": "model", "created": int(time.time()), "owned_by": "comfyui"},
+            {"id": "z-image-turbo", "object": "model", "created": int(time.time()), "owned_by": "comfyui"}
         ]
     })
 
@@ -162,7 +161,6 @@ def generate_image():
     data = request.json
     raw_model_id = data.get("model", "flux-krea-dev")
     model_id = normalize_model_id(raw_model_id)
-    
     prompt_text = data.get("prompt")
     size_str = data.get("size", "1024x1024")
     width, height = parse_size(size_str)
@@ -172,18 +170,19 @@ def generate_image():
         workflow = workflows.get_workflow(model_id, mode="gen")
     elif model_id == "flux-krea-dev":
         workflow = workflows.get_workflow(model_id)
+    elif model_id == "z-image-turbo":
+        workflow = workflows.get_workflow(model_id)
     else:
         return jsonify({"error": {"message": f"Model {model_id} (raw: {raw_model_id}) not supported for generations."}}), 400
-
+    
     seed = random.randint(1, 10**15)
-
+    
     try:
         if model_id == "flux-krea-dev":
             workflow["45"]["inputs"]["text"] = prompt_text
             workflow["31"]["inputs"]["seed"] = seed
             workflow["27"]["inputs"]["width"] = width
             workflow["27"]["inputs"]["height"] = height
-
         elif model_id == "flux-2-dev":
             workflow["6"]["inputs"]["text"] = prompt_text
             workflow["25"]["inputs"]["noise_seed"] = seed
@@ -191,6 +190,11 @@ def generate_image():
             workflow["47"]["inputs"]["height"] = height
             workflow["48"]["inputs"]["width"] = width
             workflow["48"]["inputs"]["height"] = height
+        elif model_id == "z-image-turbo":
+            workflow["6"]["inputs"]["text"] = prompt_text
+            workflow["3"]["inputs"]["seed"] = seed
+            workflow["13"]["inputs"]["width"] = width
+            workflow["13"]["inputs"]["height"] = height
 
         images = execute_workflow(workflow)
         return jsonify({
@@ -204,7 +208,6 @@ def generate_image():
 @app.route('/v1/images/edits', methods=['POST'])
 def edit_image():
     """Handles image editing (Image+Text-to-Image)."""
-    
     # 1. Robust File Retrieval
     # Check 'image', 'file', or fallback to iterating all files
     files = request.files.getlist('image')
@@ -214,7 +217,7 @@ def edit_image():
         print(f"Warning: Specific key not found. Found keys: {list(request.files.keys())}")
         for key in request.files:
             files.extend(request.files.getlist(key))
-
+            
     if not files:
          return jsonify({"error": {"message": "No image provided. Ensure multipart/form-data includes an image file."}}), 400
 
@@ -222,24 +225,22 @@ def edit_image():
     prompt_text = request.form.get("prompt")
     raw_model_id = request.form.get("model", "flux-kontext-dev")
     model_id = normalize_model_id(raw_model_id)
-    
     size_str = request.form.get("size", "1024x1024")
     width, height = parse_size(size_str)
     seed = random.randint(1, 10**15)
 
     # 3. Determine workflow
     workflow = None
-    
     if model_id == "flux-kontext-dev":
         workflow = workflows.get_workflow(model_id)
     elif model_id == "qwen-image-edit-2509":
         workflow = workflows.get_workflow(model_id)
     elif model_id == "flux-2-dev":
         img_count = len(files)
-        if img_count < 1 or img_count > 2:
-            return jsonify({"error": {"message": f"Flux 2 edit requires 1 or 2 images, got {img_count}."}}), 400
+        if img_count < 1 or img_count > 3:
+            return jsonify({"error": {"message": f"Flux 2 edit requires 1, 2, or 3 images, got {img_count}."}}), 400
         workflow = workflows.get_workflow(model_id, mode="edit", img_count=img_count)
-    
+        
     if not workflow:
         return jsonify({"error": {"message": f"Model {model_id} (raw: {raw_model_id}) not found."}}), 400
 
@@ -254,13 +255,13 @@ def edit_image():
             workflow["6"]["inputs"]["text"] = prompt_text
             workflow["142"]["inputs"]["image"] = uploaded_names[0]
             workflow["31"]["inputs"]["seed"] = seed
-
+            
         elif model_id == "qwen-image-edit-2509":
             workflow["111"]["inputs"]["prompt"] = prompt_text
             workflow["78"]["inputs"]["image"] = uploaded_names[0]
             workflow["3"]["inputs"]["seed"] = seed
-            workflow["93"]["inputs"]["megapixels"] = 1.0 
-
+            workflow["93"]["inputs"]["megapixels"] = 1.0
+            
         elif model_id == "flux-2-dev":
             workflow["6"]["inputs"]["text"] = prompt_text
             workflow["25"]["inputs"]["noise_seed"] = seed
@@ -268,20 +269,22 @@ def edit_image():
             workflow["47"]["inputs"]["height"] = height
             workflow["48"]["inputs"]["width"] = width
             workflow["48"]["inputs"]["height"] = height
-
+            
             if len(files) == 1:
                 workflow["46"]["inputs"]["image"] = uploaded_names[0]
             elif len(files) == 2:
                 workflow["42"]["inputs"]["image"] = uploaded_names[0]
                 workflow["46"]["inputs"]["image"] = uploaded_names[1]
+            elif len(files) == 3:
+                workflow["42"]["inputs"]["image"] = uploaded_names[0]
+                workflow["46"]["inputs"]["image"] = uploaded_names[1]
+                workflow["68"]["inputs"]["image"] = uploaded_names[2]
 
         images = execute_workflow(workflow)
-        
         return jsonify({
             "created": int(time.time()),
             "data": images
         })
-        
     except Exception as e:
         print(f"Workflow execution failed: {e}")
         return jsonify({"error": {"message": str(e)}}), 500
