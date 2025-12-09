@@ -2,6 +2,7 @@ services:
   comfy-api-wrapper:
     build: .
     container_name: comfy-api-wrapper
+    restart: always
     ports:
       - "5000:5000"
     environment:
