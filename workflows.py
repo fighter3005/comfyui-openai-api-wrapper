@@ -50,7 +50,6 @@ QWEN_IMAGE_EDIT = {
   "112": { "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }, "class_type": "EmptySD3LatentImage" }
 }
 
-# New Z-Image Workflow
 Z_IMAGE_TURBO_GEN = {
   "3": { "inputs": { "seed": 0, "steps": 10, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1, "model": ["30", 0], "positive": ["6", 0], "negative": ["7", 0], "latent_image": ["13", 0] }, "class_type": "KSampler" },
   "6": { "inputs": { "text": "", "clip": ["29", 0] }, "class_type": "CLIPTextEncode" },
@@ -152,6 +151,37 @@ FLUX_2_EDIT_3IMG = {
   "71": { "inputs": { "conditioning": ["39", 0], "latent": ["70", 0] }, "class_type": "ReferenceLatent" }
 }
 
+FLUX_DEV_CHECKPOINT = {
+  "6": { "inputs": { "text": "", "clip": ["30", 1] }, "class_type": "CLIPTextEncode" },
+  "8": { "inputs": { "samples": ["31", 0], "vae": ["30", 2] }, "class_type": "VAEDecode" },
+  "9": { "inputs": { "filename_prefix": "ComfyUI", "images": ["8", 0] }, "class_type": "SaveImage" },
+  "27": { "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }, "class_type": "EmptySD3LatentImage" },
+  "30": { "inputs": { "ckpt_name": "flux1-dev-fp8.safetensors" }, "class_type": "CheckpointLoaderSimple" },
+  "31": { "inputs": { "seed": 0, "steps": 20, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1, "model": ["30", 0], "positive": ["35", 0], "negative": ["33", 0], "latent_image": ["27", 0] }, "class_type": "KSampler" },
+  "33": { "inputs": { "text": "", "clip": ["30", 1] }, "class_type": "CLIPTextEncode" },
+  "35": { "inputs": { "guidance": 3.5, "conditioning": ["6", 0] }, "class_type": "FluxGuidance" }
+}
+
+SD3_5_SIMPLE = {
+  "3": { "inputs": { "seed": 0, "steps": 20, "cfg": 4.01, "sampler_name": "euler", "scheduler": "sgm_uniform", "denoise": 1, "model": ["4", 0], "positive": ["16", 0], "negative": ["40", 0], "latent_image": ["53", 0] }, "class_type": "KSampler" },
+  "4": { "inputs": { "ckpt_name": "sd3.5_large_fp8_scaled.safetensors" }, "class_type": "CheckpointLoaderSimple" },
+  "8": { "inputs": { "samples": ["3", 0], "vae": ["4", 2] }, "class_type": "VAEDecode" },
+  "9": { "inputs": { "filename_prefix": "ComfyUI", "images": ["8", 0] }, "class_type": "SaveImage" },
+  "16": { "inputs": { "text": "", "clip": ["4", 1] }, "class_type": "CLIPTextEncode" },
+  "40": { "inputs": { "text": "", "clip": ["4", 1] }, "class_type": "CLIPTextEncode" },
+  "53": { "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }, "class_type": "EmptySD3LatentImage" }
+}
+
+FLUX_SCHNELL = {
+  "6": { "inputs": { "text": "", "clip": ["30", 1] }, "class_type": "CLIPTextEncode" },
+  "8": { "inputs": { "samples": ["31", 0], "vae": ["30", 2] }, "class_type": "VAEDecode" },
+  "9": { "inputs": { "filename_prefix": "ComfyUI", "images": ["8", 0] }, "class_type": "SaveImage" },
+  "27": { "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }, "class_type": "EmptySD3LatentImage" },
+  "30": { "inputs": { "ckpt_name": "flux1-schnell-fp8.safetensors" }, "class_type": "CheckpointLoaderSimple" },
+  "31": { "inputs": { "seed": 0, "steps": 4, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1, "model": ["30", 0], "positive": ["6", 0], "negative": ["33", 0], "latent_image": ["27", 0] }, "class_type": "KSampler" },
+  "33": { "inputs": { "text": "", "clip": ["30", 1] }, "class_type": "CLIPTextEncode" }
+}
+
 def get_workflow(name, mode="gen", img_count=0):
     if name == "flux-kontext-dev":
         return copy.deepcopy(FLUX_KONTEXT_DEV)
@@ -161,6 +191,13 @@ def get_workflow(name, mode="gen", img_count=0):
         return copy.deepcopy(FLUX_KREA_DEV)
     elif name == "z-image-turbo":
         return copy.deepcopy(Z_IMAGE_TURBO_GEN)
+    elif name == "flux-dev-checkpoint":
+        return copy.deepcopy(FLUX_DEV_CHECKPOINT)
+    elif name == "sd3-5-simple":
+        return copy.deepcopy(SD3_5_SIMPLE)
+    elif name == "flux-schnell":
+        return copy.deepcopy(FLUX_SCHNELL)
+    # Flux 2 Logic
     elif name == "flux-2-dev":
         if mode == "gen":
             return copy.deepcopy(FLUX_2_GEN)
