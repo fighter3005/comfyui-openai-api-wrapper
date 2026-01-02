@@ -21,7 +21,7 @@ WS_URL = f"ws://{COMFY_HOST}:{COMFY_PORT}/ws"
 # --- ComfyUI Client Logic ---
 def upload_image(file_storage, image_type="input"):
     """
-    Uploads an image file to ComfyUI [1][2].
+    Uploads an image file to ComfyUI.
     Adds a unique prefix to the filename to prevent overwriting when multiple
     files share the same name (common with proxies/APIs).
     """
@@ -64,7 +64,7 @@ def queue_prompt(prompt_workflow):
         raise
 
 def get_history(prompt_id):
-    """Retrieves history for a specific prompt [1][2]."""
+    """Retrieves history for a specific prompt."""
     response = requests.get(f"{COMFY_URL}/history/{prompt_id}")
     return response.json()
 
@@ -77,7 +77,7 @@ def get_image_raw(filename, subfolder, folder_type):
 def execute_workflow(workflow):
     """
     Full execution cycle: Connect WS -> Queue -> Wait -> Download.
-    Based on WebSocket logic from source [2][4].
+    Based on WebSocket logic from source.
     """
     prompt_id, client_id = queue_prompt(workflow)
     ws = websocket.WebSocket()
@@ -193,7 +193,7 @@ def generate_image():
             workflow["13"]["inputs"]["width"] = width
             workflow["13"]["inputs"]["height"] = height
             
-        # New models added from context [1][2][3]
+        # New models added from context
         elif model_id == "flux-dev-checkpoint":
             workflow["6"]["inputs"]["text"] = prompt_text
             workflow["31"]["inputs"]["seed"] = seed
@@ -251,7 +251,10 @@ def edit_image():
     if model_id == "flux-kontext-dev":
         workflow = workflows.get_workflow(model_id)
     elif model_id == "qwen-image-edit":
-        workflow = workflows.get_workflow(model_id)
+        img_count = len(files)
+        if img_count < 1 or img_count > 3:
+            return jsonify({"error": {"message": f"Qwen image edit requires 1, 2, or 3 images, got {img_count}."}}), 400
+        workflow = workflows.get_workflow(model_id, mode="edit", img_count=img_count)
     elif model_id == "flux-2-dev":
         img_count = len(files)
         if img_count < 1 or img_count > 3:
@@ -275,9 +278,19 @@ def edit_image():
             
         elif model_id == "qwen-image-edit":
             workflow["111"]["inputs"]["prompt"] = prompt_text
-            workflow["78"]["inputs"]["image"] = uploaded_names[0]
             workflow["3"]["inputs"]["seed"] = seed
             workflow["93"]["inputs"]["megapixels"] = 1.0
+
+            # First (primary) image
+            workflow["78"]["inputs"]["image"] = uploaded_names[0]
+
+            # Second reference image if present
+            if len(uploaded_names) >= 2:
+                workflow["106"]["inputs"]["image"] = uploaded_names[1]
+
+            # Third reference image if present
+            if len(uploaded_names) >= 3:
+                workflow["108"]["inputs"]["image"] = uploaded_names[2]
             
         elif model_id == "flux-2-dev":
             workflow["6"]["inputs"]["text"] = prompt_text

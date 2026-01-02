@@ -32,6 +32,7 @@ FLUX_KREA_DEV = {
   "53": { "inputs": { "unet_name": "flux1-krea-dev-Q4_K_M.gguf" }, "class_type": "UnetLoaderGGUF" }
 }
 
+# Qwen Image Edit – 1 image
 QWEN_IMAGE_EDIT = {
   "3": { "inputs": { "seed": 0, "steps": 4, "cfg": 2.5, "sampler_name": "euler", "scheduler": "simple", "denoise": 1, "model": ["75", 0], "positive": ["111", 0], "negative": ["110", 0], "latent_image": ["88", 0] }, "class_type": "KSampler" },
   "8": { "inputs": { "samples": ["3", 0], "vae": ["39", 0] }, "class_type": "VAEDecode" },
@@ -48,6 +49,50 @@ QWEN_IMAGE_EDIT = {
   "111": { "inputs": { "prompt": "", "clip": ["38", 0], "vae": ["39", 0], "image1": ["93", 0] }, "class_type": "TextEncodeQwenImageEditPlus" },
   "112": { "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }, "class_type": "EmptySD3LatentImage" },
   "390": { "inputs": { "unet_name": "qwen-image-edit-2511-Q4_K_M.gguf" }, "class_type": "UnetLoaderGGUF" }
+}
+
+# Qwen Image Edit – 2 images
+QWEN_IMAGE_EDIT_2IMG = {
+  "3": { "inputs": { "seed": 0, "steps": 4, "cfg": 2.5, "sampler_name": "euler", "scheduler": "simple", "denoise": 1, "model": ["75", 0], "positive": ["111", 0], "negative": ["110", 0], "latent_image": ["88", 0] }, "class_type": "KSampler" },
+  "8": { "inputs": { "samples": ["3", 0], "vae": ["39", 0] }, "class_type": "VAEDecode" },
+  "38": { "inputs": { "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "type": "qwen_image", "device": "default" }, "class_type": "CLIPLoader" },
+  "39": { "inputs": { "vae_name": "qwen_image_vae.safetensors" }, "class_type": "VAELoader" },
+  "60": { "inputs": { "filename_prefix": "ComfyUI", "images": ["8", 0] }, "class_type": "SaveImage" },
+  "66": { "inputs": { "shift": 3, "model": ["89", 0] }, "class_type": "ModelSamplingAuraFlow" },
+  "75": { "inputs": { "strength": 1, "model": ["66", 0] }, "class_type": "CFGNorm" },
+  "78": { "inputs": { "image": "" }, "class_type": "LoadImage" },
+  "88": { "inputs": { "pixels": ["93", 0], "vae": ["39", 0] }, "class_type": "VAEEncode" },
+  "89": { "inputs": { "lora_name": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors", "strength_model": 1, "model": ["390", 0] }, "class_type": "LoraLoaderModelOnly" },
+  "93": { "inputs": { "upscale_method": "lanczos", "megapixels": 1, "resolution_steps": 1, "image": ["78", 0] }, "class_type": "ImageScaleToTotalPixels" },
+  "106": { "inputs": { "image": "" }, "class_type": "LoadImage" },
+  "110": { "inputs": { "prompt": "", "clip": ["38", 0], "vae": ["39", 0], "image1": ["93", 0], "image2": ["393", 0] }, "class_type": "TextEncodeQwenImageEditPlus" },
+  "111": { "inputs": { "prompt": "", "clip": ["38", 0], "vae": ["39", 0], "image1": ["93", 0], "image2": ["393", 0] }, "class_type": "TextEncodeQwenImageEditPlus" },
+  "112": { "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }, "class_type": "EmptySD3LatentImage" },
+  "390": { "inputs": { "unet_name": "qwen-image-edit-2511-Q4_K_M.gguf" }, "class_type": "UnetLoaderGGUF" },
+  "393": { "inputs": { "upscale_method": "lanczos", "megapixels": 1, "resolution_steps": 1, "image": ["106", 0] }, "class_type": "ImageScaleToTotalPixels" }
+}
+
+# Qwen Image Edit – 3 images
+QWEN_IMAGE_EDIT_3IMG = {
+  "3": { "inputs": { "seed": 0, "steps": 4, "cfg": 2.5, "sampler_name": "euler", "scheduler": "simple", "denoise": 1, "model": ["75", 0], "positive": ["111", 0], "negative": ["110", 0], "latent_image": ["88", 0] }, "class_type": "KSampler" },
+  "8": { "inputs": { "samples": ["3", 0], "vae": ["39", 0] }, "class_type": "VAEDecode" },
+  "38": { "inputs": { "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "type": "qwen_image", "device": "default" }, "class_type": "CLIPLoader" },
+  "39": { "inputs": { "vae_name": "qwen_image_vae.safetensors" }, "class_type": "VAELoader" },
+  "60": { "inputs": { "filename_prefix": "ComfyUI", "images": ["8", 0] }, "class_type": "SaveImage" },
+  "66": { "inputs": { "shift": 3, "model": ["89", 0] }, "class_type": "ModelSamplingAuraFlow" },
+  "75": { "inputs": { "strength": 1, "model": ["66", 0] }, "class_type": "CFGNorm" },
+  "78": { "inputs": { "image": "" }, "class_type": "LoadImage" },
+  "88": { "inputs": { "pixels": ["93", 0], "vae": ["39", 0] }, "class_type": "VAEEncode" },
+  "89": { "inputs": { "lora_name": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors", "strength_model": 1, "model": ["390", 0] }, "class_type": "LoraLoaderModelOnly" },
+  "93": { "inputs": { "upscale_method": "lanczos", "megapixels": 1, "resolution_steps": 1, "image": ["78", 0] }, "class_type": "ImageScaleToTotalPixels" },
+  "106": { "inputs": { "image": "" }, "class_type": "LoadImage" },
+  "108": { "inputs": { "image": "" }, "class_type": "LoadImage" },
+  "110": { "inputs": { "prompt": "", "clip": ["38", 0], "vae": ["39", 0], "image1": ["93", 0], "image2": ["393", 0], "image3": ["394", 0] }, "class_type": "TextEncodeQwenImageEditPlus" },
+  "111": { "inputs": { "prompt": "", "clip": ["38", 0], "vae": ["39", 0], "image1": ["93", 0], "image2": ["393", 0], "image3": ["394", 0] }, "class_type": "TextEncodeQwenImageEditPlus" },
+  "112": { "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }, "class_type": "EmptySD3LatentImage" },
+  "390": { "inputs": { "unet_name": "qwen-image-edit-2511-Q4_K_M.gguf" }, "class_type": "UnetLoaderGGUF" },
+  "393": { "inputs": { "upscale_method": "lanczos", "megapixels": 1, "resolution_steps": 1, "image": ["106", 0] }, "class_type": "ImageScaleToTotalPixels" },
+  "394": { "inputs": { "upscale_method": "lanczos", "megapixels": 1, "resolution_steps": 1, "image": ["108", 0] }, "class_type": "ImageScaleToTotalPixels" }
 }
 
 
@@ -187,6 +232,15 @@ def get_workflow(name, mode="gen", img_count=0):
     if name == "flux-kontext-dev":
         return copy.deepcopy(FLUX_KONTEXT_DEV)
     elif name == "qwen-image-edit":
+        # Multi-image logic for Qwen edit (1–3 images)
+        if mode == "edit":
+            if img_count == 1:
+                return copy.deepcopy(QWEN_IMAGE_EDIT)
+            elif img_count == 2:
+                return copy.deepcopy(QWEN_IMAGE_EDIT_2IMG)
+            elif img_count == 3:
+                return copy.deepcopy(QWEN_IMAGE_EDIT_3IMG)
+        # Fallback to single-image workflow
         return copy.deepcopy(QWEN_IMAGE_EDIT)
     elif name == "flux-krea-dev":
         return copy.deepcopy(FLUX_KREA_DEV)
