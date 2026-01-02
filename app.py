@@ -143,7 +143,7 @@ def list_models():
         "object": "list",
         "data": [
             {"id": "flux-kontext-dev", "object": "model", "created": int(time.time()), "owned_by": "comfyui"},
-            {"id": "qwen-image-edit-2509", "object": "model", "created": int(time.time()), "owned_by": "comfyui"},
+            {"id": "qwen-image-edit", "object": "model", "created": int(time.time()), "owned_by": "comfyui"},
             {"id": "flux-krea-dev", "object": "model", "created": int(time.time()), "owned_by": "comfyui"},
             {"id": "flux-2-dev", "object": "model", "created": int(time.time()), "owned_by": "comfyui"},
             {"id": "z-image-turbo", "object": "model", "created": int(time.time()), "owned_by": "comfyui"},
@@ -250,7 +250,7 @@ def edit_image():
     workflow = None
     if model_id == "flux-kontext-dev":
         workflow = workflows.get_workflow(model_id)
-    elif model_id == "qwen-image-edit-2509":
+    elif model_id == "qwen-image-edit":
         workflow = workflows.get_workflow(model_id)
     elif model_id == "flux-2-dev":
         img_count = len(files)
@@ -273,7 +273,7 @@ def edit_image():
             workflow["142"]["inputs"]["image"] = uploaded_names[0]
             workflow["31"]["inputs"]["seed"] = seed
             
-        elif model_id == "qwen-image-edit-2509":
+        elif model_id == "qwen-image-edit":
             workflow["111"]["inputs"]["prompt"] = prompt_text
             workflow["78"]["inputs"]["image"] = uploaded_names[0]
             workflow["3"]["inputs"]["seed"] = seed

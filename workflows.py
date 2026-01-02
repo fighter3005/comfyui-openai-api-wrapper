@@ -35,7 +35,6 @@ FLUX_KREA_DEV = {
 QWEN_IMAGE_EDIT = {
   "3": { "inputs": { "seed": 0, "steps": 4, "cfg": 2.5, "sampler_name": "euler", "scheduler": "simple", "denoise": 1, "model": ["75", 0], "positive": ["111", 0], "negative": ["110", 0], "latent_image": ["88", 0] }, "class_type": "KSampler" },
   "8": { "inputs": { "samples": ["3", 0], "vae": ["39", 0] }, "class_type": "VAEDecode" },
-  "37": { "inputs": { "unet_name": "qwen_image_edit_2509_fp8_e4m3fn.safetensors", "weight_dtype": "default" }, "class_type": "UNETLoader" },
   "38": { "inputs": { "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "type": "qwen_image", "device": "default" }, "class_type": "CLIPLoader" },
   "39": { "inputs": { "vae_name": "qwen_image_vae.safetensors" }, "class_type": "VAELoader" },
   "60": { "inputs": { "filename_prefix": "ComfyUI", "images": ["8", 0] }, "class_type": "SaveImage" },
@@ -43,12 +42,14 @@ QWEN_IMAGE_EDIT = {
   "75": { "inputs": { "strength": 1, "model": ["66", 0] }, "class_type": "CFGNorm" },
   "78": { "inputs": { "image": "" }, "class_type": "LoadImage" },
   "88": { "inputs": { "pixels": ["93", 0], "vae": ["39", 0] }, "class_type": "VAEEncode" },
-  "89": { "inputs": { "lora_name": "Qwen-Image-Edit-2509-Lightning-4steps-V1.0-bf16.safetensors", "strength_model": 1, "model": ["37", 0] }, "class_type": "LoraLoaderModelOnly" },
+  "89": { "inputs": { "lora_name": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors", "strength_model": 1, "model": ["390", 0] }, "class_type": "LoraLoaderModelOnly" },
   "93": { "inputs": { "upscale_method": "lanczos", "megapixels": 1, "image": ["78", 0] }, "class_type": "ImageScaleToTotalPixels" },
   "110": { "inputs": { "prompt": "", "clip": ["38", 0], "vae": ["39", 0], "image1": ["93", 0] }, "class_type": "TextEncodeQwenImageEditPlus" },
   "111": { "inputs": { "prompt": "", "clip": ["38", 0], "vae": ["39", 0], "image1": ["93", 0] }, "class_type": "TextEncodeQwenImageEditPlus" },
-  "112": { "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }, "class_type": "EmptySD3LatentImage" }
+  "112": { "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }, "class_type": "EmptySD3LatentImage" },
+  "390": { "inputs": { "unet_name": "qwen-image-edit-2511-Q4_K_M.gguf" }, "class_type": "UnetLoaderGGUF" }
 }
+
 
 Z_IMAGE_TURBO_GEN = {
   "3": { "inputs": { "seed": 0, "steps": 10, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1, "model": ["30", 0], "positive": ["6", 0], "negative": ["7", 0], "latent_image": ["13", 0] }, "class_type": "KSampler" },
@@ -185,7 +186,7 @@ FLUX_SCHNELL = {
 def get_workflow(name, mode="gen", img_count=0):
     if name == "flux-kontext-dev":
         return copy.deepcopy(FLUX_KONTEXT_DEV)
-    elif name == "qwen-image-edit-2509":
+    elif name == "qwen-image-edit":
         return copy.deepcopy(QWEN_IMAGE_EDIT)
     elif name == "flux-krea-dev":
         return copy.deepcopy(FLUX_KREA_DEV)
