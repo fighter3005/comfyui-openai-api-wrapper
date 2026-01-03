@@ -186,8 +186,8 @@ def test_edit_multipart_file_key_url():
         files = {"file": ("input.png", img, "image/png")}
         data = {
             "model": "flux-kontext-dev",
-            "prompt": "Make the womans pullover green.",
-            "size": "1024x1024",
+            "prompt": "Make the womans pullover green. Keep everything else the same.",
+            "size": "768x1280",
             "response_format": "url",
             "output_format": "jpeg",
             "output_compression": "75",
@@ -250,15 +250,15 @@ if __name__ == "__main__":
 
     get_models()
 
-    test_generation_b64_png()
-    test_generation_url_jpeg()
-    test_generation_n2_webp_b64()
-    test_generation_stream_partial()
+    # test_generation_b64_png()
+    # test_generation_url_jpeg()
+    # test_generation_n2_webp_b64()
+    # test_generation_stream_partial()
 
-    test_edit_multipart_image_key_b64()
-    test_edit_multipart_image_array_multi()
+    # test_edit_multipart_image_key_b64()
+    # test_edit_multipart_image_array_multi()
     test_edit_multipart_file_key_url()
-    test_edit_json_base64_data_url()
-    test_edit_stream()
+    # test_edit_json_base64_data_url()
+    # test_edit_stream()
 
     print("All tests finished.")

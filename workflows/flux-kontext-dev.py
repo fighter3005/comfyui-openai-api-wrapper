@@ -14,7 +14,7 @@ FLUX_KONTEXT_DEV = {
   "136": { "inputs": { "filename_prefix": "ComfyUI", "images": ["8", 0] }, "class_type": "SaveImage" },
   "142": { "inputs": { "image": "", "refresh": "refresh" }, "class_type": "LoadImage" },
   "146": { "inputs": { "direction": "right", "match_image_size": True, "spacing_width": 0, "spacing_color": "white", "image1": ["142", 0] }, "class_type": "ImageStitch" },
-  "173": { "inputs": { "images": ["42", 0] }, "class_type": "PreviewImage" },
+#   "173": { "inputs": { "images": ["42", 0] }, "class_type": "PreviewImage" },
   "177": { "inputs": { "conditioning": ["6", 0], "latent": ["124", 0] }, "class_type": "ReferenceLatent" },
   "192": { "inputs": { "unet_name": "flux1-kontext-dev-Q4_K_M.gguf" }, "class_type": "UnetLoaderGGUF" },
   "194": { "inputs": { "clip_name1": "clip_l.safetensors", "clip_name2": "t5-v1_1-xxl-encoder-Q4_K_M.gguf", "type": "flux" }, "class_type": "DualCLIPLoaderGGUF" }
