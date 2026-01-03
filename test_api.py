@@ -81,20 +81,20 @@ def test_generation_n2_webp_b64():
 
 def _parse_sse(stream_iter_lines):
     """
-    Very small SSE parser: yields (event_name, data_dict).
+    Minimal SSE parser: yields (event_name, data_dict).
     """
     event_name = None
     data_lines = []
+
     for raw in stream_iter_lines:
-        if not raw:
+        if raw is None:
             continue
+
         line = raw.decode("utf-8", errors="replace").rstrip("\n")
-        if line.startswith("event:"):
-            event_name = line.split(":", 1)[1].strip()
-        elif line.startswith("data:"):
-            data_lines.append(line.split(":", 1)[1].strip())
-        elif line.strip() == "":
-            if event_name and data_lines:
+
+        # IMPORTANT: blank line terminates one SSE event
+        if line == "":
+            if data_lines:
                 data_str = "\n".join(data_lines)
                 try:
                     yield event_name, json.loads(data_str)
@@ -102,6 +102,16 @@ def _parse_sse(stream_iter_lines):
                     yield event_name, {"_raw": data_str}
             event_name = None
             data_lines = []
+            continue
+
+        # comment/keepalive lines (optional)
+        if line.startswith(":"):
+            continue
+
+        if line.startswith("event:"):
+            event_name = line.split(":", 1)[1].strip()
+        elif line.startswith("data:"):
+            data_lines.append(line.split(":", 1)[1].strip())
 
 
 def test_generation_stream_partial():
@@ -155,7 +165,7 @@ def test_edit_multipart_image_array_multi():
         ]
         data = {
             "model": "flux-2-dev",
-            "prompt": "Make the person wear a black t-shirt with a small logo",
+            "prompt": "Make the person wear the boss t-shirt.",
             "size": "768x1280",
             "response_format": "b64_json",
             "output_format": "webp",
@@ -176,7 +186,7 @@ def test_edit_multipart_file_key_url():
         files = {"file": ("input.png", img, "image/png")}
         data = {
             "model": "flux-kontext-dev",
-            "prompt": "Make it look like a sunset scene",
+            "prompt": "Make the womans pullover green.",
             "size": "1024x1024",
             "response_format": "url",
             "output_format": "jpeg",

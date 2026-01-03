@@ -434,7 +434,10 @@ def images_generations():
                 err = {"error": {"message": str(e), "type": "server_error"}}
                 yield sse_format("error", err)
 
-        return Response(gen(), mimetype="text/event-stream")
+        return Response(gen(), mimetype="text/event-stream", headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        })
 
     # Non-streaming
     created = _now()
@@ -652,7 +655,10 @@ def images_edits():
                 err = {"error": {"message": str(e), "type": "server_error"}}
                 yield sse_format("error", err)
 
-        return Response(gen(), mimetype="text/event-stream")
+        return Response(gen(), mimetype="text/event-stream", headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        })
 
     created = _now()
     out_images = []
