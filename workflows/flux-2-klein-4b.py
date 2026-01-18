@@ -269,7 +269,7 @@ FLUX_KLEIN_4B_EDIT_1IMG = {
   "92:80": {
     "inputs": {
       "upscale_method": "nearest-exact",
-      "megapixels": 1,
+      "megapixels": 2,
       "resolution_steps": 1,
       "image": ["76", 0]
     },
