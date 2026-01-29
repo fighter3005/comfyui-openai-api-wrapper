@@ -8,6 +8,7 @@ import base64
 import threading
 import requests
 import websocket
+import math
 
 from flask import Flask, request, jsonify, Response, send_file
 from werkzeug.utils import secure_filename
@@ -141,21 +142,41 @@ def execute_workflow(workflow_dict):
 def _now():
     return int(time.time())
 
-def parse_size(size_str):
+def parse_size(size_str, mode, max_megapixels=2.0):
     """
     Parses OpenAI 'size' param into (width, height).
-    Accepts:
-      - "auto" / None => (1024, 1024)
-      - "1024x1024" etc => parsed
+
+    Behavior:
+      - "auto" / None:
+          - gen  => (1232, 1232)
+          - edit => (0, 0)   # triggers infer-size workflow
+      - "WxH" => parsed, then clamped to <= max_megapixels total pixels
     """
-    if not size_str or size_str == "auto":
-        return 1024, 1024
+    # NOTE: add parentheses; `and` binds tighter than `or`
+    if (not size_str or size_str == "auto") and mode == "gen":
+        return 1232, 1232
+    if (not size_str or size_str == "auto") and mode == "edit":
+        return 0, 0
+
     if isinstance(size_str, str) and "x" in size_str:
         try:
-            w, h = map(int, size_str.split("x"))
+            w, h = map(int, size_str.lower().split("x", 1))
+            # basic sanity
+            if w <= 0 or h <= 0:
+                return 0, 0 if mode == "edit" else (1232, 1232)
+
+            # Clamp to max megapixels
+            max_pixels = int(max_megapixels * 1_000_000)
+            pixels = w * h
+            if pixels > max_pixels:
+                scale = math.sqrt(max_pixels / float(pixels))
+                w = max(1, int(w * scale))
+                h = max(1, int(h * scale))
+
             return w, h
         except Exception:
-            return 1024, 1024
+            return (0, 0) if mode == "edit" else (1232, 1232)
+
     return 1024, 1024
 
 def normalize_model_id(model_id):
@@ -342,7 +363,7 @@ def images_generations():
 
     n = clamp_int(data.get("n"), 1, 1, 10, "n")
     size_str = data.get("size", "auto")
-    width, height = parse_size(size_str)
+    width, height = parse_size(size_str, "gen")
 
     # OpenAI Image API params we accept (best-effort)
     response_format = (data.get("response_format") or "b64_json").lower()
@@ -574,7 +595,7 @@ def images_edits():
     if output_format not in ("png", "jpeg", "webp"):
         return openai_error("output_format must be 'png', 'jpeg', or 'webp'", param="output_format")
 
-    width, height = parse_size(size_str)
+    width, height = parse_size(size_str, "edit")
     model_id = normalize_model_id(raw_model_id)
 
     # Log/ignore unsupported OpenAI params

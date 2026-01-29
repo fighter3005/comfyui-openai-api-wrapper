@@ -5,8 +5,7 @@ MODEL_ID = "flux-2-dev-turbo"
 # --------------------------
 # Text-to-Image (Generation)
 # --------------------------
-# Derived from your provided workflow by removing the image-reference chain
-# and setting BasicGuider conditioning to the prompt guidance (node 26).
+# Same as before (generation does not have an "infer size" variant).
 FLUX2_TURBO_GEN = {
   "6": {
     "inputs": {"text": "", "clip": ["38", 0]},
@@ -50,10 +49,7 @@ FLUX2_TURBO_GEN = {
     "_meta": {"title": "KSamplerSelect"}
   },
   "22": {
-    "inputs": {
-      "model": ["68", 0],
-      "conditioning": ["26", 0]
-    },
+    "inputs": {"model": ["68", 0], "conditioning": ["26", 0]},
     "class_type": "BasicGuider",
     "_meta": {"title": "BasicGuider"}
   },
@@ -93,10 +89,31 @@ FLUX2_TURBO_GEN = {
   }
 }
 
+# ============================================================
+# EDIT WORKFLOWS (NORMAL vs INFER-SIZE)
+# ============================================================
+# Rule requested:
+# - If NO size given, size not supported, or size is 0x0 -> use infer-size variant.
+# - Otherwise use normal (explicit width/height) variant.
+#
+# In practice here we implement it as:
+#   use_infer_size = (width is None) or (height is None) or (int(width) <= 0) or (int(height) <= 0)
+# The wrapper currently always passes width/height, but this supports future changes and also
+# handles explicit 0x0 (or negative/None) robustly.
+
+def _should_use_infer_size(width, height) -> bool:
+    try:
+        if width is None or height is None:
+            return True
+        w = int(width)
+        h = int(height)
+        return (w <= 0) or (h <= 0)
+    except Exception:
+        return True
+
 # --------------------------
-# Image Edit (1 image)
+# Image Edit (1 image) - NORMAL
 # --------------------------
-# Uses the "primary" image chain (node 46 -> 45 -> 44) and one ReferenceLatent (node 43).
 FLUX2_TURBO_EDIT_1IMG = {
   "6": {
     "inputs": {"text": "", "clip": ["38", 0]},
@@ -170,12 +187,7 @@ FLUX2_TURBO_EDIT_1IMG = {
     "_meta": {"title": "VAE Encode"}
   },
   "45": {
-    "inputs": {
-      "upscale_method": "lanczos",
-      "megapixels": 2,
-      "resolution_steps": 1,
-      "image": ["46", 0]
-    },
+    "inputs": {"upscale_method": "lanczos", "megapixels": 2, "resolution_steps": 1, "image": ["46", 0]},
     "class_type": "ImageScaleToTotalPixels",
     "_meta": {"title": "ImageScaleToTotalPixels"}
   },
@@ -206,9 +218,31 @@ FLUX2_TURBO_EDIT_1IMG = {
 }
 
 # --------------------------
-# Image Edit (2 images)
+# Image Edit (1 image) - INFER SIZE
+# (matches your "edit 1 images - infer size.json": width/height come from GetImageSize)
 # --------------------------
-# This is your provided workflow (as-is).
+FLUX2_TURBO_EDIT_1IMG_INFER_SIZE = {
+  **copy.deepcopy(FLUX2_TURBO_EDIT_1IMG),
+  "47": {
+    "inputs": {"width": ["69", 0], "height": ["69", 1], "batch_size": 1},
+    "class_type": "EmptyFlux2LatentImage",
+    "_meta": {"title": "Empty Flux 2 Latent"}
+  },
+  "48": {
+    "inputs": {"steps": 8, "width": ["69", 0], "height": ["69", 1]},
+    "class_type": "Flux2Scheduler",
+    "_meta": {"title": "Flux2Scheduler"}
+  },
+  "69": {
+    "inputs": {"image": ["45", 0]},
+    "class_type": "GetImageSize",
+    "_meta": {"title": "Get Image Size"}
+  }
+}
+
+# --------------------------
+# Image Edit (2 images) - NORMAL
+# --------------------------
 FLUX2_TURBO_EDIT_2IMG = {
   "6": {
     "inputs": {"text": "", "clip": ["38", 0]},
@@ -282,12 +316,7 @@ FLUX2_TURBO_EDIT_2IMG = {
     "_meta": {"title": "VAE Encode"}
   },
   "41": {
-    "inputs": {
-      "upscale_method": "lanczos",
-      "megapixels": 1,
-      "resolution_steps": 1,
-      "image": ["42", 0]
-    },
+    "inputs": {"upscale_method": "lanczos", "megapixels": 1, "resolution_steps": 1, "image": ["42", 0]},
     "class_type": "ImageScaleToTotalPixels",
     "_meta": {"title": "ImageScaleToTotalPixels"}
   },
@@ -307,12 +336,7 @@ FLUX2_TURBO_EDIT_2IMG = {
     "_meta": {"title": "VAE Encode"}
   },
   "45": {
-    "inputs": {
-      "upscale_method": "lanczos",
-      "megapixels": 2,
-      "resolution_steps": 1,
-      "image": ["46", 0]
-    },
+    "inputs": {"upscale_method": "lanczos", "megapixels": 2, "resolution_steps": 1, "image": ["46", 0]},
     "class_type": "ImageScaleToTotalPixels",
     "_meta": {"title": "ImageScaleToTotalPixels"}
   },
@@ -343,55 +367,89 @@ FLUX2_TURBO_EDIT_2IMG = {
 }
 
 # --------------------------
-# Image Edit (3 images)
+# Image Edit (2 images) - INFER SIZE
+# (matches your "edit 2 images - infer size.json": width/height come from GetImageSize)
 # --------------------------
-# Adds a third reference image chained on top of the 2-image conditioning result.
+FLUX2_TURBO_EDIT_2IMG_INFER_SIZE = {
+  **copy.deepcopy(FLUX2_TURBO_EDIT_2IMG),
+  "47": {
+    "inputs": {"width": ["69", 0], "height": ["69", 1], "batch_size": 1},
+    "class_type": "EmptyFlux2LatentImage",
+    "_meta": {"title": "Empty Flux 2 Latent"}
+  },
+  "48": {
+    "inputs": {"steps": 8, "width": ["69", 0], "height": ["69", 1]},
+    "class_type": "Flux2Scheduler",
+    "_meta": {"title": "Flux2Scheduler"}
+  },
+  "69": {
+    "inputs": {"image": ["45", 0]},
+    "class_type": "GetImageSize",
+    "_meta": {"title": "Get Image Size"}
+  }
+}
+
+# --------------------------
+# Image Edit (3 images) - NORMAL
+# --------------------------
 FLUX2_TURBO_EDIT_3IMG = {
   **copy.deepcopy(FLUX2_TURBO_EDIT_2IMG),
-
-  # third image load + scale + encode
-  "69": {
+  "70": {
     "inputs": {"image": ""},
     "class_type": "LoadImage",
-    "_meta": {"title": "Load Image (3rd)"}
-  },
-  "70": {
-    "inputs": {
-      "upscale_method": "lanczos",
-      "megapixels": 1,
-      "resolution_steps": 1,
-      "image": ["69", 0]
-    },
-    "class_type": "ImageScaleToTotalPixels",
-    "_meta": {"title": "ImageScaleToTotalPixels (3rd)"}
+    "_meta": {"title": "Load Image"}
   },
   "71": {
-    "inputs": {"pixels": ["70", 0], "vae": ["10", 0]},
-    "class_type": "VAEEncode",
-    "_meta": {"title": "VAE Encode (3rd)"}
+    "inputs": {"upscale_method": "lanczos", "megapixels": 1.5, "resolution_steps": 1, "image": ["70", 0]},
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {"title": "ImageScaleToTotalPixels"}
   },
-
-  # chain conditioning from node 39 (2-image result) with latent from third image
   "72": {
-    "inputs": {"conditioning": ["39", 0], "latent": ["71", 0]},
-    "class_type": "ReferenceLatent",
-    "_meta": {"title": "ReferenceLatent (3rd)"}
+    "inputs": {"pixels": ["71", 0], "vae": ["10", 0]},
+    "class_type": "VAEEncode",
+    "_meta": {"title": "VAE Encode"}
   },
-
-  # override BasicGuider to use the final (3-image) conditioning
+  "73": {
+    "inputs": {"conditioning": ["39", 0], "latent": ["72", 0]},
+    "class_type": "ReferenceLatent",
+    "_meta": {"title": "ReferenceLatent"}
+  },
   "22": {
-    "inputs": {"model": ["68", 0], "conditioning": ["72", 0]},
+    "inputs": {"model": ["68", 0], "conditioning": ["73", 0]},
     "class_type": "BasicGuider",
     "_meta": {"title": "BasicGuider"}
+  }
+}
+
+# --------------------------
+# Image Edit (3 images) - INFER SIZE
+# (matches your "edit 3 images - infer size.json": width/height come from GetImageSize node 69)
+# --------------------------
+FLUX2_TURBO_EDIT_3IMG_INFER_SIZE = {
+  **copy.deepcopy(FLUX2_TURBO_EDIT_3IMG),
+  "47": {
+    "inputs": {"width": ["69", 0], "height": ["69", 1], "batch_size": 1},
+    "class_type": "EmptyFlux2LatentImage",
+    "_meta": {"title": "Empty Flux 2 Latent"}
   },
+  "48": {
+    "inputs": {"steps": 8, "width": ["69", 0], "height": ["69", 1]},
+    "class_type": "Flux2Scheduler",
+    "_meta": {"title": "Flux2Scheduler"}
+  },
+  "69": {
+    "inputs": {"image": ["45", 0]},
+    "class_type": "GetImageSize",
+    "_meta": {"title": "Get Image Size"}
+  }
 }
 
 
 def get_workflow(
     mode: str = "gen",
     prompt: str = "",
-    width: int = 1024,
-    height: int = 1024,
+    width: int = 0,
+    height: int = 0,
     seed: int = 0,
     images=None,
     **kwargs
@@ -407,6 +465,8 @@ def get_workflow(
         wf = copy.deepcopy(FLUX2_TURBO_GEN)
         wf["6"]["inputs"]["text"] = prompt or ""
         wf["25"]["inputs"]["noise_seed"] = int(seed or 0)
+
+        # Generation always uses explicit size
         wf["47"]["inputs"]["width"] = int(width)
         wf["47"]["inputs"]["height"] = int(height)
         wf["48"]["inputs"]["width"] = int(width)
@@ -420,30 +480,36 @@ def get_workflow(
         print(f"[{MODEL_ID}] Received {len(images)} images; only 3 supported. Extra images will be ignored.")
         images = images[:3]
 
+    use_infer = _should_use_infer_size(width, height)
+
     if len(images) == 1:
-        wf = copy.deepcopy(FLUX2_TURBO_EDIT_1IMG)
-        # primary image
+        wf = copy.deepcopy(FLUX2_TURBO_EDIT_1IMG_INFER_SIZE if use_infer else FLUX2_TURBO_EDIT_1IMG)
         wf["46"]["inputs"]["image"] = images[0]
+
     elif len(images) == 2:
-        wf = copy.deepcopy(FLUX2_TURBO_EDIT_2IMG)
+        wf = copy.deepcopy(FLUX2_TURBO_EDIT_2IMG_INFER_SIZE if use_infer else FLUX2_TURBO_EDIT_2IMG)
         # mapping chosen to match your node intent:
         # - node 46 is the "main" image (megapixels=2)
         # - node 42 is the "reference" image (megapixels=1)
         wf["46"]["inputs"]["image"] = images[0]
         wf["42"]["inputs"]["image"] = images[1]
+
     else:
-        wf = copy.deepcopy(FLUX2_TURBO_EDIT_3IMG)
+        wf = copy.deepcopy(FLUX2_TURBO_EDIT_3IMG_INFER_SIZE if use_infer else FLUX2_TURBO_EDIT_3IMG)
         wf["46"]["inputs"]["image"] = images[0]
         wf["42"]["inputs"]["image"] = images[1]
-        wf["69"]["inputs"]["image"] = images[2]
+        wf["70"]["inputs"]["image"] = images[2]
 
-    # prompt + seed + output size
+    # prompt + seed
     wf["6"]["inputs"]["text"] = prompt or ""
     wf["25"]["inputs"]["noise_seed"] = int(seed or 0)
 
-    wf["47"]["inputs"]["width"] = int(width)
-    wf["47"]["inputs"]["height"] = int(height)
-    wf["48"]["inputs"]["width"] = int(width)
-    wf["48"]["inputs"]["height"] = int(height)
+    # Only set output size for the NORMAL (non-infer) workflows.
+    # For infer-size workflows, nodes 47/48 are wired to GetImageSize already.
+    if not use_infer:
+        wf["47"]["inputs"]["width"] = int(width)
+        wf["47"]["inputs"]["height"] = int(height)
+        wf["48"]["inputs"]["width"] = int(width)
+        wf["48"]["inputs"]["height"] = int(height)
 
     return wf
