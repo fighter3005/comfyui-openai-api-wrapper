@@ -133,7 +133,7 @@ FLUX_KLEIN_4B_EDIT_1IMG = {
   "92:79:77": {"inputs": {"conditioning": ["92:74", 0], "latent": ["92:79:78", 0]}, "class_type": "ReferenceLatent", "_meta": {"title": "ReferenceLatent"}},
   "92:66": {"inputs": {"width": 1232, "height": 1232, "batch_size": 1}, "class_type": "EmptyFlux2LatentImage", "_meta": {"title": "Empty Flux 2 Latent"}},
   "92:80": {"inputs": {"upscale_method": "nearest-exact", "megapixels": 1.25, "resolution_steps": 1, "image": ["76", 0]}, "class_type": "ImageScaleToTotalPixels", "_meta": {"title": "ImageScaleToTotalPixels"}},
-  "92:62": {"inputs": {"steps": 25, "width": 1232, "height": 1232}, "class_type": "Flux2Scheduler", "_meta": {"title": "Flux2Scheduler"}}
+  "92:62": {"inputs": {"steps": 40, "width": 1232, "height": 1232}, "class_type": "Flux2Scheduler", "_meta": {"title": "Flux2Scheduler"}}
 }
 
 # --------------------------
@@ -143,7 +143,7 @@ FLUX_KLEIN_4B_EDIT_1IMG_INFER_SIZE = {
   **copy.deepcopy(FLUX_KLEIN_4B_EDIT_1IMG),
   "92:66": {"inputs": {"width": ["92:81", 0], "height": ["92:81", 1], "batch_size": 1}, "class_type": "EmptyFlux2LatentImage", "_meta": {"title": "Empty Flux 2 Latent"}},
   "92:81": {"inputs": {"image": ["92:80", 0]}, "class_type": "GetImageSize", "_meta": {"title": "Get Image Size"}},
-  "92:62": {"inputs": {"steps": 25, "width": ["92:81", 0], "height": ["92:81", 1]}, "class_type": "Flux2Scheduler", "_meta": {"title": "Flux2Scheduler"}}
+  "92:62": {"inputs": {"steps": 40, "width": ["92:81", 0], "height": ["92:81", 1]}, "class_type": "Flux2Scheduler", "_meta": {"title": "Flux2Scheduler"}}
 }
 
 # --------------------------
@@ -166,7 +166,7 @@ FLUX_KLEIN_4B_EDIT_2IMG_INFER_SIZE = {
   **copy.deepcopy(FLUX_KLEIN_4B_EDIT_2IMG),
   "92:66": {"inputs": {"width": ["92:81", 0], "height": ["92:81", 1], "batch_size": 1}, "class_type": "EmptyFlux2LatentImage", "_meta": {"title": "Empty Flux 2 Latent"}},
   "92:81": {"inputs": {"image": ["92:80", 0]}, "class_type": "GetImageSize", "_meta": {"title": "Get Image Size"}},
-  "92:62": {"inputs": {"steps": 25, "width": ["92:81", 0], "height": ["92:81", 1]}, "class_type": "Flux2Scheduler", "_meta": {"title": "Flux2Scheduler"}}
+  "92:62": {"inputs": {"steps": 40, "width": ["92:81", 0], "height": ["92:81", 1]}, "class_type": "Flux2Scheduler", "_meta": {"title": "Flux2Scheduler"}}
 }
 
 # --------------------------
@@ -189,7 +189,7 @@ FLUX_KLEIN_4B_EDIT_3IMG_INFER_SIZE = {
   **copy.deepcopy(FLUX_KLEIN_4B_EDIT_3IMG),
   "92:66": {"inputs": {"width": ["92:81", 0], "height": ["92:81", 1], "batch_size": 1}, "class_type": "EmptyFlux2LatentImage", "_meta": {"title": "Empty Flux 2 Latent"}},
   "92:81": {"inputs": {"image": ["92:80", 0]}, "class_type": "GetImageSize", "_meta": {"title": "Get Image Size"}},
-  "92:62": {"inputs": {"steps": 25, "width": ["92:81", 0], "height": ["92:81", 1]}, "class_type": "Flux2Scheduler", "_meta": {"title": "Flux2Scheduler"}}
+  "92:62": {"inputs": {"steps": 40, "width": ["92:81", 0], "height": ["92:81", 1]}, "class_type": "Flux2Scheduler", "_meta": {"title": "Flux2Scheduler"}}
 }
 
 
